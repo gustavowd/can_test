@@ -3,7 +3,7 @@ use std::{env, time::Duration};
 use std::sync::{Arc, Mutex, mpsc};
 use std::{thread, time};
 
-use isobus_stack::isobus::{Ecu, IsoBus, PGN_CODES, MessageTypes};
+use isobus_stack::isobus::{Ecu, IsoBus, PGN_CODES, MessageTypes, IsoBusTypes};
 
 //sudo ip link set can0 up type can bitrate 250000
 
@@ -143,10 +143,14 @@ fn isobus_user_thread(this_ecu: Arc<Mutex<Ecu>>, request_tx: std::sync::mpsc::Sy
     Ok(())
 }
 
+fn receive_callback(sa: u8, packet: IsoBusTypes) {
+    println!("Received {:?} from {}", packet, sa);
+}
+
 fn main() -> anyhow::Result<()> {
     let iface = env::args().nth(1).unwrap_or_else(|| "can0".into());
 
-    let my_ecu = Arc::new(Mutex::new(Ecu::new(0xAA)));
+    let my_ecu = Arc::new(Mutex::new(Ecu::new(0xAA, receive_callback)));
     #[allow(clippy::type_complexity)]
     let (request_tx, request_rx) = mpsc::sync_channel(32);
     let (response_tx, response_rx) = mpsc::channel();
