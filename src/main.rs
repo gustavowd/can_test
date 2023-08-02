@@ -20,8 +20,7 @@ fn isobus_user_thread(this_ecu: Arc<Mutex<Ecu>>, response_rx: std::sync::mpsc::R
                     println!("Successfull received PGN: {:?}", pgn);
                     let mut my_ecu = this_ecu.lock().unwrap();
                     let idx = my_ecu.get_other_ecu_idx(0xA2);
-                    let other_ecu = &my_ecu.other_ecus[idx];
-                    let packet = other_ecu.packet.clone();
+                    let packet = my_ecu.other_ecus[idx].packet.clone();
                     drop(my_ecu);
                     println!("{:?}", packet);
                 }
@@ -41,8 +40,7 @@ fn isobus_user_thread(this_ecu: Arc<Mutex<Ecu>>, response_rx: std::sync::mpsc::R
                     println!("Successfull received PGN: {:?}", pgn);
                     let mut my_ecu = this_ecu.lock().unwrap();
                     let idx = my_ecu.get_other_ecu_idx(0x90);
-                    let other_ecu = &my_ecu.other_ecus[idx];
-                    let packet = other_ecu.packet.clone();
+                    let packet = my_ecu.other_ecus[idx].packet.clone();
                     drop(my_ecu);
                     println!("{:?}", packet);
                 }
@@ -62,8 +60,7 @@ fn isobus_user_thread(this_ecu: Arc<Mutex<Ecu>>, response_rx: std::sync::mpsc::R
                     println!("Successfull received PGN: {:?}", pgn);
                     let mut my_ecu = this_ecu.lock().unwrap();
                     let idx = my_ecu.get_other_ecu_idx(0xA2);
-                    let other_ecu = &my_ecu.other_ecus[idx];
-                    let packet = other_ecu.packet.clone();
+                    let packet = my_ecu.other_ecus[idx].packet.clone();
                     drop(my_ecu);
                     println!("{:?}", packet);
                 }
@@ -83,8 +80,7 @@ fn isobus_user_thread(this_ecu: Arc<Mutex<Ecu>>, response_rx: std::sync::mpsc::R
                     println!("Successfull received PGN: {:?}", pgn);
                     let mut my_ecu = this_ecu.lock().unwrap();
                     let idx = my_ecu.get_other_ecu_idx(0x90);
-                    let other_ecu = &my_ecu.other_ecus[idx];
-                    let packet = other_ecu.packet.clone();
+                    let packet = my_ecu.other_ecus[idx].packet.clone();
                     drop(my_ecu);
                     println!("{:?}", packet);
                 }
@@ -104,8 +100,7 @@ fn isobus_user_thread(this_ecu: Arc<Mutex<Ecu>>, response_rx: std::sync::mpsc::R
                     println!("Successfull received PGN: {:?}", pgn);
                     let mut my_ecu = this_ecu.lock().unwrap();
                     let idx = my_ecu.get_other_ecu_idx(0xA2);
-                    let other_ecu = &my_ecu.other_ecus[idx];
-                    let packet = other_ecu.packet.clone();
+                    let packet = my_ecu.other_ecus[idx].packet.clone();
                     drop(my_ecu);
                     println!("{:?}", packet);
                 }
@@ -125,8 +120,7 @@ fn isobus_user_thread(this_ecu: Arc<Mutex<Ecu>>, response_rx: std::sync::mpsc::R
                     println!("Successfull received PGN: {:?}", pgn);
                     let mut my_ecu = this_ecu.lock().unwrap();
                     let idx = my_ecu.get_other_ecu_idx(0x90);
-                    let other_ecu = &my_ecu.other_ecus[idx];
-                    let packet = other_ecu.packet.clone();
+                    let packet = my_ecu.other_ecus[idx].packet.clone();
                     drop(my_ecu);
                     println!("{:?}", packet);
                 }
