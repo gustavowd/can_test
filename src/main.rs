@@ -7,13 +7,10 @@ use isobus_stack::isobus::{Ecu, IsoBus, PGN_CODES, IsoBusTypes};
 
 //sudo ip link set can0 up type can bitrate 250000
 
-fn isobus_user_thread(this_ecu: Arc<Mutex<Ecu>>, response_rx: std::sync::mpsc::Receiver<PGN_CODES>) -> anyhow::Result<()> {
+fn isobus_user_thread(this_ecu: Arc<Mutex<Ecu>>) -> anyhow::Result<()> {
     let mut error_cnt = 0;
-    let my_ecu = this_ecu.lock().unwrap();
-    let request_tx = my_ecu.request_tx.clone();
-    drop(my_ecu);
     loop {
-        match isobus_stack::isobus::pgn_request(PGN_CODES::SOFTWARE_IDENTIFICATION, 0xA2, Duration::from_millis(500), &request_tx, &response_rx) {
+        match isobus_stack::isobus::pgn_request(&this_ecu, PGN_CODES::SOFTWARE_IDENTIFICATION, 0xA2, Duration::from_millis(500)) {
             Ok(pgn) => {
                 error_cnt = 0;
                 if pgn == PGN_CODES::SOFTWARE_IDENTIFICATION {
@@ -33,7 +30,7 @@ fn isobus_user_thread(this_ecu: Arc<Mutex<Ecu>>, response_rx: std::sync::mpsc::R
 
         thread::sleep(time::Duration::from_millis(200));
 
-        match isobus_stack::isobus::pgn_request(PGN_CODES::SOFTWARE_IDENTIFICATION, 0x90, Duration::from_millis(500), &request_tx, &response_rx) {
+        match isobus_stack::isobus::pgn_request(&this_ecu, PGN_CODES::SOFTWARE_IDENTIFICATION, 0x90, Duration::from_millis(500)) {
             Ok(pgn) => {
                 error_cnt = 0;
                 if pgn == PGN_CODES::SOFTWARE_IDENTIFICATION {
@@ -53,7 +50,7 @@ fn isobus_user_thread(this_ecu: Arc<Mutex<Ecu>>, response_rx: std::sync::mpsc::R
 
         thread::sleep(time::Duration::from_millis(2000));
 
-        match isobus_stack::isobus::pgn_request(PGN_CODES::ECU_IDENTIFICATION, 0xA2, Duration::from_millis(500), &request_tx, &response_rx) {
+        match isobus_stack::isobus::pgn_request(&this_ecu, PGN_CODES::ECU_IDENTIFICATION, 0xA2, Duration::from_millis(500)) {
             Ok(pgn) => {
                 error_cnt = 0;
                 if pgn == PGN_CODES::ECU_IDENTIFICATION {
@@ -73,7 +70,7 @@ fn isobus_user_thread(this_ecu: Arc<Mutex<Ecu>>, response_rx: std::sync::mpsc::R
 
         thread::sleep(time::Duration::from_millis(200));
 
-        match isobus_stack::isobus::pgn_request(PGN_CODES::ECU_IDENTIFICATION, 0x90, Duration::from_millis(500), &request_tx, &response_rx) {
+        match isobus_stack::isobus::pgn_request(&this_ecu, PGN_CODES::ECU_IDENTIFICATION, 0x90, Duration::from_millis(500)) {
             Ok(pgn) => {
                 error_cnt = 0;
                 if pgn == PGN_CODES::ECU_IDENTIFICATION {
@@ -93,7 +90,7 @@ fn isobus_user_thread(this_ecu: Arc<Mutex<Ecu>>, response_rx: std::sync::mpsc::R
 
         thread::sleep(time::Duration::from_millis(2000));
 
-        match isobus_stack::isobus::pgn_request(PGN_CODES::COMPONENT_IDENTIFICATION, 0xA2, Duration::from_millis(500), &request_tx, &response_rx) {
+        match isobus_stack::isobus::pgn_request(&this_ecu, PGN_CODES::COMPONENT_IDENTIFICATION, 0xA2, Duration::from_millis(500)) {
             Ok(pgn) => {
                 error_cnt = 0;
                 if pgn == PGN_CODES::COMPONENT_IDENTIFICATION {
@@ -113,7 +110,7 @@ fn isobus_user_thread(this_ecu: Arc<Mutex<Ecu>>, response_rx: std::sync::mpsc::R
 
         thread::sleep(time::Duration::from_millis(200));
 
-        match isobus_stack::isobus::pgn_request(PGN_CODES::COMPONENT_IDENTIFICATION, 0x90, Duration::from_millis(500), &request_tx, &response_rx) {
+        match isobus_stack::isobus::pgn_request(&this_ecu, PGN_CODES::COMPONENT_IDENTIFICATION, 0x90, Duration::from_millis(500)) {
             Ok(pgn) => {
                 error_cnt = 0;
                 if pgn == PGN_CODES::COMPONENT_IDENTIFICATION {
@@ -148,9 +145,9 @@ fn main() -> anyhow::Result<()> {
     let iface = env::args().nth(1).unwrap_or_else(|| "can0".into());
 
     let mut handles = vec![];
-    let (ecu, response_rx) = isobus_stack::isobus::start_isobus_stack(iface, 0xAA, receive_callback);
+    let ecu = isobus_stack::isobus::start_isobus_stack(iface, 0xAA, receive_callback);
 
-    let handle = thread::spawn(move || isobus_user_thread(ecu, response_rx));
+    let handle = thread::spawn(move || isobus_user_thread(ecu));
     handles.push(handle);
 
     for handle in handles {
