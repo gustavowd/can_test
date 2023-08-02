@@ -1,13 +1,19 @@
-use socketcan::Frame;
 use std::{env, time::Duration};
-use std::sync::{Arc, Mutex};
 use std::{thread, time};
 
-use isobus_stack::isobus::{Ecu, IsoBus, PGN_CODES, IsoBusTypes};
+use isobus_stack::isobus::{IsoBus, PGN_CODES, IsoBusTypes};
 
 //sudo ip link set can0 up type can bitrate 250000
 
-fn isobus_user_thread(this_ecu: Arc<Mutex<Ecu>>) -> anyhow::Result<()> {
+fn receive_callback(sa: u8, packet: IsoBusTypes) {
+    println!("Received {:?} from {}", packet, sa);
+}
+
+fn main() -> anyhow::Result<()> {
+    let iface = env::args().nth(1).unwrap_or_else(|| "can0".into());
+
+    let this_ecu = isobus_stack::isobus::start_isobus_stack(iface, 0xAA, receive_callback);
+
     let mut error_cnt = 0;
     loop {
         match isobus_stack::isobus::pgn_request(&this_ecu, PGN_CODES::SOFTWARE_IDENTIFICATION, 0xA2, Duration::from_millis(500)) {
@@ -134,43 +140,6 @@ fn isobus_user_thread(this_ecu: Arc<Mutex<Ecu>>) -> anyhow::Result<()> {
         
         thread::sleep(time::Duration::from_millis(5000));
     }
-    Ok(())
-}
-
-fn receive_callback(sa: u8, packet: IsoBusTypes) {
-    println!("Received {:?} from {}", packet, sa);
-}
-
-fn main() -> anyhow::Result<()> {
-    let iface = env::args().nth(1).unwrap_or_else(|| "can0".into());
-
-    let mut handles = vec![];
-    let ecu = isobus_stack::isobus::start_isobus_stack(iface, 0xAA, receive_callback);
-
-    let handle = thread::spawn(move || isobus_user_thread(ecu));
-    handles.push(handle);
-
-    for handle in handles {
-        match handle.join() {
-            Ok(result) => {
-                result?
-            },
-            Err(_err) => {
-                return Err(anyhow::format_err!("Not possible to spawn thread!"))
-            }
-        }
-    }
 
     Ok(())
-}
-
-#[allow(dead_code)]
-fn frame_to_string<F: Frame>(frame: &F) -> String {
-    let id = frame.raw_id();
-    let data_string = frame
-        .data()
-        .iter()
-        .fold(String::from(""), |a, b| format!("{} {:02x}", a, b));
-
-    format!("{:X}  [{}] {}", id, frame.dlc(), data_string)
 }
